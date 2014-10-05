@@ -27,8 +27,7 @@ or implied, of Juan Heyns.
 */
 package org.jdatepicker.impl;
 
-import java.awt.Component;
-import java.awt.GridLayout;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -210,8 +209,10 @@ public class JDatePanelImpl extends JPanel implements JDatePanel {
 		private JButton previousYearButton;
 		private JButton nextYearButton;
 		private JSpinner yearSpinner;
-		
-		/**
+        private JSpinner hourSpinner;
+        private JSpinner minuteSpinner;
+
+        /**
 		 * Update the scroll buttons UI.
 		 */
 		private void updateShowYearButtons() {
@@ -312,7 +313,7 @@ public class JDatePanelImpl extends JPanel implements JDatePanel {
 		private JSpinner getYearSpinner() {
 			if (yearSpinner == null) {
 				yearSpinner = new javax.swing.JSpinner();
-				yearSpinner.setModel(internalModel);
+				yearSpinner.setModel(internalModel.getYearSpinnerModel());
 			}
 			return yearSpinner;
 		}
@@ -328,13 +329,33 @@ public class JDatePanelImpl extends JPanel implements JDatePanel {
 				southPanel.setLayout(new java.awt.BorderLayout());
 				southPanel.setBackground(colors.bgTodaySelector());
 				southPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(3,3,3,3));
-				southPanel.add(getTodayLabel(), java.awt.BorderLayout.WEST);
+
+                southPanel.add(timePanel(), BorderLayout.NORTH);
+                southPanel.add(getTodayLabel(), java.awt.BorderLayout.WEST);
 				southPanel.add(getNoneLabel(), java.awt.BorderLayout.EAST);
 			}
 			return southPanel;
 		}
 
-		/**
+        private Component timePanel() {
+            JPanel timePanel = new JPanel();
+            timePanel.setLayout(new FlowLayout());
+
+            hourSpinner = new JSpinner();
+            hourSpinner.setModel(internalModel.getHourSpinnerModel());
+
+            minuteSpinner = new JSpinner();
+            minuteSpinner = new JSpinner();
+            minuteSpinner.setModel(internalModel.getMinuteSpinnerModel());
+
+            timePanel.add(hourSpinner);
+            timePanel.add(new JLabel(":"));
+            timePanel.add(minuteSpinner);
+
+            return timePanel;
+        }
+
+        /**
 		 * This method initializes todayLabel	
 		 * 	
 		 * @return javax.swing.JLabel	
@@ -768,66 +789,59 @@ public class JDatePanelImpl extends JPanel implements JDatePanel {
 	 * 
 	 * @author Juan Heyns
 	 */
-	protected class InternalCalendarModel implements TableModel, SpinnerModel, ChangeListener {
+	protected class InternalCalendarModel implements TableModel, ChangeListener {
 
 		private CalendarModel<?> model;
-		private HashSet<ChangeListener> spinnerChangeListeners;
 		private HashSet<TableModelListener> tableModelListeners;
 
-		public InternalCalendarModel(CalendarModel<?> model){
-			this.spinnerChangeListeners = new HashSet<ChangeListener>();
+        private YearSpinnerModel yearSpinnerModel;
+        private RangeSpinnerModelAdapter hourSpinnerModel;
+        private RangeSpinnerModelAdapter minuteSpinnerModel;
+
+		public InternalCalendarModel(final CalendarModel<?> model){
 			this.tableModelListeners = new HashSet<TableModelListener>();
 			this.model = model;
+            this.yearSpinnerModel = new YearSpinnerModel(model);
+            this.hourSpinnerModel = new RangeSpinnerModelAdapter(0, 24) {
+                @Override
+                public void setModelValue(Integer hour) {
+                    model.setHour(hour);
+                }
+
+                @Override
+                public Integer getModelValue() {
+                    return model.getHour();
+                }
+            };
+
+            this.minuteSpinnerModel = new RangeSpinnerModelAdapter(0, 60) {
+                @Override
+                public void setModelValue(Integer value) {
+                    model.setMinute(value);
+                }
+
+                @Override
+                public Integer getModelValue() {
+                   return model.getMinute();
+                }
+            };
+
 			model.addChangeListener(this);
 		}
 		
 		public CalendarModel<?> getModel() {
 			return model;
 		}
-		
-		/**
-		 * Part of SpinnerModel, year
-		 */
-		public void addChangeListener(ChangeListener arg0) {
-			spinnerChangeListeners.add(arg0);
-		}
 
-		/**
-		 * Part of SpinnerModel, year
-		 */
-		public void removeChangeListener(ChangeListener arg0) {
-			spinnerChangeListeners.remove(arg0);
-		}
+        public RangeSpinnerModelAdapter getHourSpinnerModel() {
+            return hourSpinnerModel;
+        }
 
-		/**
-		 * Part of SpinnerModel, year
-		 */
-		public Object getNextValue() {
-			return Integer.toString(model.getYear() + 1);
-		}
+        public SpinnerModel getYearSpinnerModel() {
+            return yearSpinnerModel;
+        }
 
-		/**
-		 * Part of SpinnerModel, year
-		 */
-		public Object getPreviousValue() {
-			return Integer.toString(model.getYear() - 1);
-		}
-
-		/**
-		 * Part of SpinnerModel, year
-		 */
-		public void setValue(Object text) {
-			model.setYear(new Integer((String)text));
-		}
-
-		/**
-		 * Part of SpinnerModel, year
-		 */
-		public Object getValue() {
-			return Integer.toString(model.getYear());
-		}
-
-		/**
+        /**
 		 * Part of TableModel, day
 		 */
 		public void addTableModelListener(TableModelListener arg0) {
@@ -903,11 +917,12 @@ public class JDatePanelImpl extends JPanel implements JDatePanel {
 		 * has changed.
 		 */
 		private void fireValueChanged() {
-			//Update year spinner
-			for (ChangeListener cl : spinnerChangeListeners) {
-				cl.stateChanged(new ChangeEvent(this));
-			}
-			
+			yearSpinnerModel.notifyListeners();
+
+            hourSpinnerModel.fireStateChanged();
+
+            minuteSpinnerModel.fireStateChanged();
+
 			//Update month label
 			internalView.updateMonthLabel();
 			
@@ -924,6 +939,9 @@ public class JDatePanelImpl extends JPanel implements JDatePanel {
 			fireValueChanged();
 		}
 
-	}
+        public SpinnerModel getMinuteSpinnerModel() {
+            return minuteSpinnerModel;
+        }
+    }
 	
 }

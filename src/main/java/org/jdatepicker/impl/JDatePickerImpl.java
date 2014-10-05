@@ -27,16 +27,9 @@ or implied, of Juan Heyns.
 */
 package org.jdatepicker.impl;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.HierarchyBoundsListener;
-import java.awt.event.HierarchyEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.util.Calendar;
+import org.jdatepicker.CalendarModel;
+import org.jdatepicker.JDatePanel;
+import org.jdatepicker.JDatePicker;
 
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
@@ -48,10 +41,16 @@ import javax.swing.PopupFactory;
 import javax.swing.SpringLayout;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-
-import org.jdatepicker.CalendarModel;
-import org.jdatepicker.JDatePanel;
-import org.jdatepicker.JDatePicker;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.HierarchyBoundsListener;
+import java.awt.event.HierarchyEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.Calendar;
 
 
 /**
@@ -103,7 +102,7 @@ public class JDatePickerImpl extends JPanel implements JDatePicker {
 		//Add and Configure TextField
 		formattedTextField = new JFormattedTextField(datePanel.getFormatter());
 		CalendarModel<?> model = datePanel.getModel();
-		setTextFieldValue(formattedTextField, model.getYear(), model.getMonth(), model.getDay(), model.isSelected());
+		setTextFieldValue(formattedTextField);
 		formattedTextField.setEditable(false);		
 		add(formattedTextField);
         layout.putConstraint(SpringLayout.WEST, formattedTextField, 0, SpringLayout.WEST, this);
@@ -239,7 +238,7 @@ public class JDatePickerImpl extends JPanel implements JDatePicker {
 		public void stateChanged(ChangeEvent arg0) {
 			if (arg0.getSource() == datePanel.getModel()) {
 				CalendarModel<?> model = datePanel.getModel();
-				setTextFieldValue(formattedTextField, model.getYear(), model.getMonth(), model.getDay(), model.isSelected());
+				setTextFieldValue(formattedTextField);
 			}
 		}
 
@@ -269,24 +268,22 @@ public class JDatePickerImpl extends JPanel implements JDatePicker {
 		datePanel.setShowYearButtons(showYearButtons);
 	}
 	
-	private void setTextFieldValue(JFormattedTextField textField, int year, int month, int day, boolean isSelected) {
-		if (!isSelected) {
+	private void setTextFieldValue(JFormattedTextField textField) {
+		if (!getModel().isSelected()) {
 			textField.setValue(null);
 		}
 		else {
 			Calendar calendar = Calendar.getInstance();
-			calendar.set(year, month, day, 0, 0, 0);
+			calendar.set(getModel().getYear(), getModel().getMonth(), getModel().getDay(), getModel().getHour(), getModel().getMinute(), 0);
 			calendar.set(Calendar.MILLISECOND, 0);
 			textField.setValue(calendar);
 		}
 	}
 
-	@Override
 	public Icon getButtonIcon() {
 		return button.getIcon();
 	}
 
-	@Override
 	public void setButtonIcon(Icon icon) {
 		// use icon
 		button.setIcon(icon);

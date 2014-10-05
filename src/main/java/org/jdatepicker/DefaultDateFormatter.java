@@ -46,7 +46,7 @@ public class DefaultDateFormatter extends JFormattedTextField.AbstractFormatter 
 	}
 	
 	public DateFormat getMediumDateFormat() {
-		return SimpleDateFormat.getDateInstance(SimpleDateFormat.MEDIUM);
+		return SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.MEDIUM, SimpleDateFormat.SHORT);
 	}
 	
 	@Override

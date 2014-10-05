@@ -105,8 +105,26 @@ public abstract class AbstractCalendarModel<T> implements CalendarModel<T> {
 	public int getYear() {
 		return calendarValue.get(Calendar.YEAR);
 	}
-	
-	public T getValue() {
+
+    public Integer getHour() { return calendarValue.get(Calendar.HOUR_OF_DAY); }
+
+    public void setHour(Integer hour) {
+        calendarValue.set(Calendar.HOUR_OF_DAY, hour);
+
+        fireChangeEvent();
+    }
+
+    public Integer getMinute() {
+        return calendarValue.get(Calendar.MINUTE);
+    }
+
+    public void setMinute(Integer minute) {
+        calendarValue.set(Calendar.MINUTE, minute);
+
+        fireChangeEvent();
+    }
+
+    public T getValue() {
 		if (!selected) {
 			return null;
 		}
@@ -177,7 +195,7 @@ public abstract class AbstractCalendarModel<T> implements CalendarModel<T> {
 		
 		if (value != null) {
 			this.calendarValue = toCalendar(value);
-			setToMidnight();
+			//setToMidnight();
 			selected = true;
 		}
 		else {

@@ -179,4 +179,11 @@ public interface CalendarModel<T> {
      */
     public void removePropertyChangeListener(PropertyChangeListener listener);
 
+    Integer getHour();
+
+    void setHour(Integer hour);
+
+    Integer getMinute();
+
+    void setMinute(Integer minute);
 }
